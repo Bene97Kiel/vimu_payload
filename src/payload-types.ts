@@ -69,6 +69,9 @@ export interface Config {
   collections: {
     users: User;
     media: Media;
+    providers: Provider;
+    sites: Site;
+    valuables: Valuable;
     'payload-kv': PayloadKv;
     'payload-locked-documents': PayloadLockedDocument;
     'payload-preferences': PayloadPreference;
@@ -78,6 +81,9 @@ export interface Config {
   collectionsSelect: {
     users: UsersSelect<false> | UsersSelect<true>;
     media: MediaSelect<false> | MediaSelect<true>;
+    providers: ProvidersSelect<false> | ProvidersSelect<true>;
+    sites: SitesSelect<false> | SitesSelect<true>;
+    valuables: ValuablesSelect<false> | ValuablesSelect<true>;
     'payload-kv': PayloadKvSelect<false> | PayloadKvSelect<true>;
     'payload-locked-documents': PayloadLockedDocumentsSelect<false> | PayloadLockedDocumentsSelect<true>;
     'payload-preferences': PayloadPreferencesSelect<false> | PayloadPreferencesSelect<true>;
@@ -123,6 +129,8 @@ export interface UserAuthOperations {
  */
 export interface User {
   id: string;
+  surname: string;
+  name: string;
   updatedAt: string;
   createdAt: string;
   email: string;
@@ -163,6 +171,95 @@ export interface Media {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "providers".
+ */
+export interface Provider {
+  id: string;
+  name: string;
+  user: string | User;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "sites".
+ */
+export interface Site {
+  id: string;
+  title: string;
+  provider: string | Provider;
+  time: string;
+  image?: (string | null) | Media;
+  logo?: (string | null) | Media;
+  /**
+   * @minItems 2
+   * @maxItems 2
+   */
+  location: [number, number];
+  address: string;
+  isAvailable: boolean;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "valuables".
+ */
+export interface Valuable {
+  id: string;
+  site: string | Site;
+  publisher: string | User;
+  provider: string | Provider;
+  type: 'Artefact' | 'Sight';
+  subtype:
+    | 'Painting'
+    | 'Creation'
+    | 'Sculpture'
+    | 'Machine'
+    | 'Audio'
+    | 'Video'
+    | 'Statue'
+    | 'Building'
+    | 'Monument'
+    | 'Location'
+    | 'Digital'
+    | 'Virtual'
+    | 'Nature';
+  data: {
+    title: string;
+    artist?: string | null;
+    year?: string | null;
+    description?: string | null;
+  };
+  tags?:
+    | {
+        tag?: string | null;
+        id?: string | null;
+      }[]
+    | null;
+  /**
+   * @minItems 2
+   * @maxItems 2
+   */
+  location: [number, number];
+  price: number;
+  mediaFiles?:
+    | {
+        file?: (string | null) | Media;
+        id?: string | null;
+      }[]
+    | null;
+  images?:
+    | {
+        image?: (string | null) | Media;
+        id?: string | null;
+      }[]
+    | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "payload-kv".
  */
 export interface PayloadKv {
@@ -192,6 +289,18 @@ export interface PayloadLockedDocument {
     | ({
         relationTo: 'media';
         value: string | Media;
+      } | null)
+    | ({
+        relationTo: 'providers';
+        value: string | Provider;
+      } | null)
+    | ({
+        relationTo: 'sites';
+        value: string | Site;
+      } | null)
+    | ({
+        relationTo: 'valuables';
+        value: string | Valuable;
       } | null);
   globalSlug?: string | null;
   user: {
@@ -240,6 +349,8 @@ export interface PayloadMigration {
  * via the `definition` "users_select".
  */
 export interface UsersSelect<T extends boolean = true> {
+  surname?: T;
+  name?: T;
   updatedAt?: T;
   createdAt?: T;
   email?: T;
@@ -274,6 +385,73 @@ export interface MediaSelect<T extends boolean = true> {
   height?: T;
   focalX?: T;
   focalY?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "providers_select".
+ */
+export interface ProvidersSelect<T extends boolean = true> {
+  name?: T;
+  user?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "sites_select".
+ */
+export interface SitesSelect<T extends boolean = true> {
+  title?: T;
+  provider?: T;
+  time?: T;
+  image?: T;
+  logo?: T;
+  location?: T;
+  address?: T;
+  isAvailable?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "valuables_select".
+ */
+export interface ValuablesSelect<T extends boolean = true> {
+  site?: T;
+  publisher?: T;
+  provider?: T;
+  type?: T;
+  subtype?: T;
+  data?:
+    | T
+    | {
+        title?: T;
+        artist?: T;
+        year?: T;
+        description?: T;
+      };
+  tags?:
+    | T
+    | {
+        tag?: T;
+        id?: T;
+      };
+  location?: T;
+  price?: T;
+  mediaFiles?:
+    | T
+    | {
+        file?: T;
+        id?: T;
+      };
+  images?:
+    | T
+    | {
+        image?: T;
+        id?: T;
+      };
+  updatedAt?: T;
+  createdAt?: T;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
