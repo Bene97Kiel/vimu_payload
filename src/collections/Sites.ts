@@ -1,5 +1,7 @@
 import type { CollectionConfig } from 'payload'
 
+import { isProviderOrAdmin } from '../access/roles'
+
 export const Sites: CollectionConfig = {
   slug: 'sites',
 
@@ -8,6 +10,12 @@ export const Sites: CollectionConfig = {
     // This tells Payload to use the 'name' field for labels
     // instead of the auto-generated ID
     useAsTitle: 'title',
+  },
+  access: {
+    read: () => true,
+    create: isProviderOrAdmin,
+    update: isProviderOrAdmin,
+    delete: isProviderOrAdmin,
   },
   fields: [
     {
