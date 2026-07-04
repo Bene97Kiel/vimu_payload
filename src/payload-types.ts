@@ -72,6 +72,7 @@ export interface Config {
     providers: Provider;
     sites: Site;
     valuables: Valuable;
+    categories: Category;
     'payload-kv': PayloadKv;
     'payload-locked-documents': PayloadLockedDocument;
     'payload-preferences': PayloadPreference;
@@ -84,6 +85,7 @@ export interface Config {
     providers: ProvidersSelect<false> | ProvidersSelect<true>;
     sites: SitesSelect<false> | SitesSelect<true>;
     valuables: ValuablesSelect<false> | ValuablesSelect<true>;
+    categories: CategoriesSelect<false> | CategoriesSelect<true>;
     'payload-kv': PayloadKvSelect<false> | PayloadKvSelect<true>;
     'payload-locked-documents': PayloadLockedDocumentsSelect<false> | PayloadLockedDocumentsSelect<true>;
     'payload-preferences': PayloadPreferencesSelect<false> | PayloadPreferencesSelect<true>;
@@ -212,20 +214,7 @@ export interface Valuable {
   provider: string | Provider;
   type: 'Artefact' | 'Sight';
   title: string;
-  subtype:
-    | 'Painting'
-    | 'Creation'
-    | 'Sculpture'
-    | 'Machine'
-    | 'Audio'
-    | 'Video'
-    | 'Statue'
-    | 'Building'
-    | 'Monument'
-    | 'Location'
-    | 'Digital'
-    | 'Virtual'
-    | 'Nature';
+  category: string | Category;
   data: {
     title: string;
     artist?: string | null;
@@ -256,6 +245,17 @@ export interface Valuable {
         id?: string | null;
       }[]
     | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "categories".
+ */
+export interface Category {
+  id: string;
+  name: string;
+  icon: string | Media;
   updatedAt: string;
   createdAt: string;
 }
@@ -302,6 +302,10 @@ export interface PayloadLockedDocument {
     | ({
         relationTo: 'valuables';
         value: string | Valuable;
+      } | null)
+    | ({
+        relationTo: 'categories';
+        value: string | Category;
       } | null);
   globalSlug?: string | null;
   user: {
@@ -423,7 +427,7 @@ export interface ValuablesSelect<T extends boolean = true> {
   provider?: T;
   type?: T;
   title?: T;
-  subtype?: T;
+  category?: T;
   data?:
     | T
     | {
@@ -452,6 +456,16 @@ export interface ValuablesSelect<T extends boolean = true> {
         image?: T;
         id?: T;
       };
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "categories_select".
+ */
+export interface CategoriesSelect<T extends boolean = true> {
+  name?: T;
+  icon?: T;
   updatedAt?: T;
   createdAt?: T;
 }
