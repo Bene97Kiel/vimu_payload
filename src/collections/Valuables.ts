@@ -4,6 +4,9 @@ export const Valuables: CollectionConfig = {
   slug: 'valuables',
 
   timestamps: true,
+  admin: {
+    useAsTitle: 'title',
+  },
 
   fields: [
     {
@@ -31,6 +34,11 @@ export const Valuables: CollectionConfig = {
         { label: 'Artefact', value: 'Artefact' },
         { label: 'Sight', value: 'Sight' },
       ],
+      required: true,
+    },
+    {
+      name: 'title',
+      type: 'text',
       required: true,
     },
     {

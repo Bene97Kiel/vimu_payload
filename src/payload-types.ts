@@ -211,6 +211,7 @@ export interface Valuable {
   publisher: string | User;
   provider: string | Provider;
   type: 'Artefact' | 'Sight';
+  title: string;
   subtype:
     | 'Painting'
     | 'Creation'
@@ -421,6 +422,7 @@ export interface ValuablesSelect<T extends boolean = true> {
   publisher?: T;
   provider?: T;
   type?: T;
+  title?: T;
   subtype?: T;
   data?:
     | T
