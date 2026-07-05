@@ -73,6 +73,7 @@ export interface Config {
     sites: Site;
     valuables: Valuable;
     categories: Category;
+    'user-valuables': UserValuable;
     'payload-kv': PayloadKv;
     'payload-locked-documents': PayloadLockedDocument;
     'payload-preferences': PayloadPreference;
@@ -86,6 +87,7 @@ export interface Config {
     sites: SitesSelect<false> | SitesSelect<true>;
     valuables: ValuablesSelect<false> | ValuablesSelect<true>;
     categories: CategoriesSelect<false> | CategoriesSelect<true>;
+    'user-valuables': UserValuablesSelect<false> | UserValuablesSelect<true>;
     'payload-kv': PayloadKvSelect<false> | PayloadKvSelect<true>;
     'payload-locked-documents': PayloadLockedDocumentsSelect<false> | PayloadLockedDocumentsSelect<true>;
     'payload-preferences': PayloadPreferencesSelect<false> | PayloadPreferencesSelect<true>;
@@ -133,6 +135,9 @@ export interface User {
   id: string;
   surname: string;
   name: string;
+  nickname?: string | null;
+  lastname?: string | null;
+  role: 'client' | 'provider' | 'admin';
   updatedAt: string;
   createdAt: string;
   email: string;
@@ -140,6 +145,8 @@ export interface User {
   resetPasswordExpiration?: string | null;
   salt?: string | null;
   hash?: string | null;
+  _verified?: boolean | null;
+  _verificationToken?: string | null;
   loginAttempts?: number | null;
   lockUntil?: string | null;
   sessions?:
@@ -213,6 +220,24 @@ export interface Valuable {
   publisher: string | User;
   provider: string | Provider;
   type: 'Artefact' | 'Sight';
+  subtype?:
+    | (
+        | 'PAINTING'
+        | 'SCULPTURE'
+        | 'MACHINE'
+        | 'AUDIO'
+        | 'MOVIE'
+        | 'ITEM'
+        | 'STATUE'
+        | 'BUILDING'
+        | 'MONUMENT'
+        | 'LOCATION'
+        | 'DIGITAL'
+        | 'VIRTUAL'
+        | 'NATURE'
+        | 'CREATION'
+      )
+    | null;
   title: string;
   category: string | Category;
   data: {
@@ -256,6 +281,20 @@ export interface Category {
   id: string;
   name: string;
   icon: string | Media;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "user-valuables".
+ */
+export interface UserValuable {
+  id: string;
+  user: string | User;
+  valuable: string | Valuable;
+  price: number;
+  paymentMethod: 'Stripe' | 'Paypal';
+  paymentStatus: 'Pending' | 'Completed' | 'Failed';
   updatedAt: string;
   createdAt: string;
 }
@@ -306,6 +345,10 @@ export interface PayloadLockedDocument {
     | ({
         relationTo: 'categories';
         value: string | Category;
+      } | null)
+    | ({
+        relationTo: 'user-valuables';
+        value: string | UserValuable;
       } | null);
   globalSlug?: string | null;
   user: {
@@ -356,6 +399,9 @@ export interface PayloadMigration {
 export interface UsersSelect<T extends boolean = true> {
   surname?: T;
   name?: T;
+  nickname?: T;
+  lastname?: T;
+  role?: T;
   updatedAt?: T;
   createdAt?: T;
   email?: T;
@@ -363,6 +409,8 @@ export interface UsersSelect<T extends boolean = true> {
   resetPasswordExpiration?: T;
   salt?: T;
   hash?: T;
+  _verified?: T;
+  _verificationToken?: T;
   loginAttempts?: T;
   lockUntil?: T;
   sessions?:
@@ -426,6 +474,7 @@ export interface ValuablesSelect<T extends boolean = true> {
   publisher?: T;
   provider?: T;
   type?: T;
+  subtype?: T;
   title?: T;
   category?: T;
   data?:
@@ -466,6 +515,19 @@ export interface ValuablesSelect<T extends boolean = true> {
 export interface CategoriesSelect<T extends boolean = true> {
   name?: T;
   icon?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "user-valuables_select".
+ */
+export interface UserValuablesSelect<T extends boolean = true> {
+  user?: T;
+  valuable?: T;
+  price?: T;
+  paymentMethod?: T;
+  paymentStatus?: T;
   updatedAt?: T;
   createdAt?: T;
 }

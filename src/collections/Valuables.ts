@@ -1,11 +1,19 @@
 import type { CollectionConfig } from 'payload'
 
+import { isProviderOrAdmin } from '../access/roles'
+
 export const Valuables: CollectionConfig = {
   slug: 'valuables',
 
   timestamps: true,
   admin: {
     useAsTitle: 'title',
+  },
+  access: {
+    read: () => true,
+    create: isProviderOrAdmin,
+    update: isProviderOrAdmin,
+    delete: isProviderOrAdmin,
   },
 
   fields: [
@@ -35,6 +43,26 @@ export const Valuables: CollectionConfig = {
         { label: 'Sight', value: 'Sight' },
       ],
       required: true,
+    },
+    {
+      name: 'subtype',
+      type: 'select',
+      options: [
+        'PAINTING',
+        'SCULPTURE',
+        'MACHINE',
+        'AUDIO',
+        'MOVIE',
+        'ITEM',
+        'STATUE',
+        'BUILDING',
+        'MONUMENT',
+        'LOCATION',
+        'DIGITAL',
+        'VIRTUAL',
+        'NATURE',
+        'CREATION',
+      ].map((value) => ({ label: value, value })),
     },
     {
       name: 'title',
