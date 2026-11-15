@@ -1,0 +1,114 @@
+<!doctype html>
+<!-- PROTOTYPE for issue #18 (throwaway): compare Preview variants on a real phone with the
+     same <model-viewer> 3.2.0 bundle the collector app ships. Switch with ?v=<id> or the bottom bar. -->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Preview prototype</title>
+<script>
+  // Only variant G (meshopt) needs this; the collector app does not set it today.
+  self.ModelViewerElement = { meshoptDecoderLocation: '/decoders/meshopt_decoder.js' };
+</script>
+<script type="module" src="/model-viewer.min.js"></script>
+<style>
+  :root { color-scheme: light dark; --bg: #f4f4f2; --fg: #1d1d1b; --panel: rgba(255,255,255,.92); --accent: #2f6fdb; --muted: #6b6b66; }
+  @media (prefers-color-scheme: dark) { :root { --bg: #161616; --fg: #ececea; --panel: rgba(32,32,32,.92); --muted: #a0a09a; } }
+  * { box-sizing: border-box; }
+  body { margin: 0; font: 14px/1.4 system-ui, sans-serif; background: var(--bg); color: var(--fg); }
+  model-viewer { width: 100vw; height: 62vh; background: var(--bg); }
+  #panel { padding: 10px 16px 140px; }
+  #panel h1 { font-size: 16px; margin: 0 0 4px; }
+  #note { color: var(--muted); margin: 0 0 8px; }
+  table { border-collapse: collapse; width: 100%; }
+  td { padding: 3px 0; border-bottom: 1px solid color-mix(in srgb, var(--fg) 12%, transparent); }
+  td:first-child { color: var(--muted); width: 42%; }
+  #bar { position: fixed; left: 0; right: 0; bottom: 0; background: var(--panel); backdrop-filter: blur(6px); padding: 8px 12px calc(8px + env(safe-area-inset-bottom)); box-shadow: 0 -2px 10px rgba(0,0,0,.15); }
+  #variants { display: flex; gap: 6px; overflow-x: auto; padding-bottom: 6px; }
+  #actions { display: flex; gap: 6px; flex-wrap: wrap; }
+  button { font: inherit; border: 1px solid color-mix(in srgb, var(--fg) 25%, transparent); background: transparent; color: var(--fg); border-radius: 8px; padding: 8px 12px; min-width: 44px; }
+  button.on { background: var(--accent); border-color: var(--accent); color: #fff; }
+  #poster { display: none; position: fixed; inset: 0; background: rgba(0,0,0,.8); z-index: 5; align-items: center; justify-content: center; }
+  #poster img { max-width: 92vw; max-height: 80vh; background: #fff; }
+</style>
+</head>
+<body>
+<model-viewer id="mv" camera-controls auto-rotate shadow-intensity="1" exposure="1" alt="Preview variant"></model-viewer>
+<div id="panel">
+  <h1 id="title">Loading variants…</h1>
+  <p id="note"></p>
+  <table id="stats"></table>
+</div>
+<div id="bar">
+  <div id="variants"></div>
+  <div id="actions">
+    <button data-rate="good">👍 Good</button>
+    <button data-rate="ok">😐 OK</button>
+    <button data-rate="bad">👎 Bad</button>
+    <button id="posterBtn">Poster</button>
+    <button id="runAll">Run all</button>
+  </div>
+</div>
+<div id="poster"><img alt="Poster rendered on this phone"></div>
+<script type="module">
+const mv = document.getElementById('mv');
+const { variants } = await (await fetch('/out/variants.json')).json();
+const state = { current: null, loadMs: null, fps: null, error: null };
+const gl = document.createElement('canvas').getContext('webgl2') || document.createElement('canvas').getContext('webgl');
+const dbg = gl && gl.getExtension('WEBGL_debug_renderer_info');
+const device = { ua: navigator.userAgent, gpu: dbg ? gl.getParameter(dbg.UNMASKED_RENDERER_WEBGL) : 'unknown', maxTexture: gl ? gl.getParameter(gl.MAX_TEXTURE_SIZE) : null, dpr: devicePixelRatio, screen: `${screen.width}x${screen.height}` };
+
+const report = (extra) => fetch('/report', { method: 'POST', body: JSON.stringify({ variant: state.current.id, loadMs: state.loadMs, fps: state.fps, error: state.error, device, ...extra }) });
+const render = () => {
+  const v = state.current;
+  document.getElementById('title').textContent = v.id;
+  document.getElementById('note').textContent = v.note;
+  const rows = [
+    ['Triangles', v.tris.toLocaleString()], ['File size', (v.bytes / 1048576).toFixed(2) + ' MB'],
+    ['Geometry', v.compression], ['Texture', `${v.texFormat} ${v.texSize}²`],
+    ['Load (src → load event)', state.error ? 'ERROR: ' + state.error : state.loadMs == null ? '…' : state.loadMs + ' ms'],
+    ['Frame rate (5 s, rotating)', state.fps == null ? '…' : state.fps + ' fps'],
+    ['GPU', device.gpu], ['Max texture size', device.maxTexture],
+    ['Server build time / peak RAM', `${(v.totalMs / 1000).toFixed(1)} s / ${v.peakRssMB} MB`],
+  ];
+  document.getElementById('stats').innerHTML = rows.map(([k, val]) => `<tr><td>${k}</td><td>${val}</td></tr>`).join('');
+  document.querySelectorAll('#variants button').forEach((b) => b.classList.toggle('on', b.dataset.id === v.id));
+};
+const measureFps = () => new Promise((resolve) => {
+  let frames = 0; const start = performance.now();
+  const tick = (now) => { frames++; if (now - start < 5000) requestAnimationFrame(tick); else resolve(Math.round(frames * 1000 / (now - start))); };
+  requestAnimationFrame(tick);
+});
+const show = (v) => new Promise((resolve) => {
+  Object.assign(state, { current: v, loadMs: null, fps: null, error: null });
+  history.replaceState(null, '', `?v=${v.id}`);
+  render();
+  const t0 = performance.now();
+  const done = async (err) => {
+    mv.removeEventListener('load', onLoad); mv.removeEventListener('error', onErr);
+    if (err) state.error = err; else { state.loadMs = Math.round(performance.now() - t0); render(); state.fps = await measureFps(); }
+    render(); await report({ kind: 'measure' }); resolve();
+  };
+  const onLoad = () => done();
+  const onErr = (e) => done(String(e.detail?.sourceError?.message || e.detail?.type || 'load failed'));
+  mv.addEventListener('load', onLoad); mv.addEventListener('error', onErr);
+  mv.src = `/out/${v.id}.glb?t=${Date.now()}`;
+});
+
+const bar = document.getElementById('variants');
+for (const v of variants) {
+  const b = document.createElement('button'); b.textContent = v.id.split('-')[0]; b.dataset.id = v.id; b.title = v.id;
+  b.onclick = () => show(v); bar.append(b);
+}
+document.querySelectorAll('[data-rate]').forEach((b) => b.onclick = () => { report({ kind: 'rating', rating: b.dataset.rate }); b.textContent += ' ✓'; setTimeout(() => b.textContent = b.textContent.replace(' ✓', ''), 1200); });
+document.getElementById('runAll').onclick = async () => { for (const v of variants) await show(v); };
+document.getElementById('posterBtn').onclick = async () => {
+  const blob = await mv.toBlob({ idealAspect: true });
+  const p = document.getElementById('poster'); p.querySelector('img').src = URL.createObjectURL(blob); p.style.display = 'flex';
+  p.onclick = () => (p.style.display = 'none');
+};
+const wanted = new URLSearchParams(location.search).get('v');
+await show(variants.find((v) => v.id === wanted) ?? variants.find((v) => v.id.startsWith('C')) ?? variants[0]);
+</script>
+</body>
+</html>
