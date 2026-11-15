@@ -9,3 +9,5 @@ Read `architecture/ARCHITECTURE.md` before planning, recommending or implementin
 
 - Plans and recommendations should fit the architecture described there, or say explicitly where and why they depart from it.
 - When a change alters the architecture (collections, access rules, endpoints, auth, storage, app integration), update `ARCHITECTURE.md` in the same change and note if the diagram needs updating.
+- Use the vocabulary in `GLOSSARY.md` (Scan, Rendition, Game asset, Preview, Poster, UserValuable, Grant, Owner).
+- Respect the decisions in `docs/adr/`. Planned work on Scan storage and delivery is specified in `architecture/scan-storage-spec.md` and not implemented yet.
