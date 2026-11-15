@@ -1,0 +1,305 @@
+{
+ "source": "../../../Objects/Amphora/amphora_gltf.glb",
+ "generatedAt": "2026-11-15T16:28:43.744Z",
+ "variants": [
+  {
+   "id": "A-raw-sp-draco",
+   "simplifier": "gp-sp",
+   "targetTris": 50000,
+   "compression": "draco",
+   "texFormat": "jpeg",
+   "texSize": 2048,
+   "srcTris": 2200452,
+   "srcVerts": 6598426,
+   "tris": 58920,
+   "verts": 111587,
+   "reachedTarget": false,
+   "bytes": 1019404,
+   "extensionsUsed": [
+    "KHR_materials_specular",
+    "KHR_draco_mesh_compression"
+   ],
+   "timingsMs": {
+    "read": 170,
+    "simplify": 29460,
+    "reread": 19,
+    "textures": 154,
+    "compress": 53,
+    "write": 247
+   },
+   "totalMs": 30103,
+   "peakRssMB": 2524,
+   "note": "Raw export, gltfpack permissive (-sp), keeps flat normals"
+  },
+  {
+   "id": "B-raw-sa-draco",
+   "simplifier": "gp-sa",
+   "targetTris": 50000,
+   "compression": "draco",
+   "texFormat": "jpeg",
+   "texSize": 2048,
+   "srcTris": 2200452,
+   "srcVerts": 6598426,
+   "tris": 48779,
+   "verts": 23209,
+   "reachedTarget": true,
+   "bytes": 786140,
+   "extensionsUsed": [
+    "KHR_materials_specular",
+    "KHR_draco_mesh_compression"
+   ],
+   "timingsMs": {
+    "read": 155,
+    "simplify": 5413,
+    "reread": 15,
+    "textures": 165,
+    "compress": 29,
+    "write": 159
+   },
+   "totalMs": 5936,
+   "peakRssMB": 2417,
+   "note": "Raw export, gltfpack aggressive (-sa), ignores quality"
+  },
+  {
+   "id": "C-weld-draco",
+   "simplifier": "w-gp",
+   "targetTris": 50000,
+   "compression": "draco",
+   "texFormat": "jpeg",
+   "texSize": 2048,
+   "srcTris": 2200452,
+   "srcVerts": 6598426,
+   "tris": 49998,
+   "verts": 29959,
+   "reachedTarget": true,
+   "bytes": 747812,
+   "extensionsUsed": [
+    "KHR_materials_specular",
+    "KHR_draco_mesh_compression"
+   ],
+   "timingsMs": {
+    "read": 154,
+    "weld": 1776,
+    "simplify": 6228,
+    "reread": 13,
+    "textures": 161,
+    "compress": 31,
+    "write": 168
+   },
+   "totalMs": 8531,
+   "peakRssMB": 1039,
+   "note": "Drop normals + weld, gltfpack default, smooth normals"
+  },
+  {
+   "id": "D-weld-sv-draco",
+   "simplifier": "w-gp-sv",
+   "targetTris": 50000,
+   "compression": "draco",
+   "texFormat": "jpeg",
+   "texSize": 2048,
+   "srcTris": 2200452,
+   "srcVerts": 6598426,
+   "tris": 49998,
+   "verts": 29956,
+   "reachedTarget": true,
+   "bytes": 758788,
+   "extensionsUsed": [
+    "KHR_materials_specular",
+    "KHR_draco_mesh_compression"
+   ],
+   "timingsMs": {
+    "read": 158,
+    "weld": 1653,
+    "simplify": 6764,
+    "reread": 15,
+    "textures": 168,
+    "compress": 40,
+    "write": 169
+   },
+   "totalMs": 8967,
+   "peakRssMB": 1100,
+   "note": "Drop normals + weld, gltfpack attribute-aware (-sv)"
+  },
+  {
+   "id": "E-weld-sp-draco",
+   "simplifier": "w-gp-sp",
+   "targetTris": 50000,
+   "compression": "draco",
+   "texFormat": "jpeg",
+   "texSize": 2048,
+   "srcTris": 2200452,
+   "srcVerts": 6598426,
+   "tris": 49996,
+   "verts": 29894,
+   "reachedTarget": true,
+   "bytes": 747388,
+   "extensionsUsed": [
+    "KHR_materials_specular",
+    "KHR_draco_mesh_compression"
+   ],
+   "timingsMs": {
+    "read": 154,
+    "weld": 1591,
+    "simplify": 5968,
+    "reread": 11,
+    "textures": 166,
+    "compress": 34,
+    "write": 168
+   },
+   "totalMs": 8092,
+   "peakRssMB": 1042,
+   "note": "Drop normals + weld, gltfpack permissive (-sp)"
+  },
+  {
+   "id": "F-weld-quant",
+   "simplifier": "w-gp",
+   "targetTris": 50000,
+   "compression": "quant",
+   "texFormat": "jpeg",
+   "texSize": 2048,
+   "srcTris": 2200452,
+   "srcVerts": 6598426,
+   "tris": 49998,
+   "verts": 29959,
+   "reachedTarget": true,
+   "bytes": 1458020,
+   "extensionsUsed": [
+    "KHR_materials_specular",
+    "KHR_mesh_quantization"
+   ],
+   "timingsMs": {
+    "read": 154,
+    "weld": 1588,
+    "simplify": 5996,
+    "reread": 10,
+    "textures": 153,
+    "compress": 70,
+    "write": 26
+   },
+   "totalMs": 7997,
+   "peakRssMB": 1043,
+   "note": "Like C, quantization only: no decoder needed"
+  },
+  {
+   "id": "G-weld-meshopt",
+   "simplifier": "w-gp",
+   "targetTris": 50000,
+   "compression": "meshopt",
+   "texFormat": "jpeg",
+   "texSize": 2048,
+   "srcTris": 2200452,
+   "srcVerts": 6598426,
+   "tris": 49998,
+   "verts": 29959,
+   "reachedTarget": true,
+   "bytes": 1005752,
+   "extensionsUsed": [
+    "KHR_materials_specular",
+    "KHR_mesh_quantization",
+    "EXT_meshopt_compression"
+   ],
+   "timingsMs": {
+    "read": 156,
+    "weld": 1605,
+    "simplify": 5780,
+    "reread": 9,
+    "textures": 162,
+    "compress": 116,
+    "write": 35
+   },
+   "totalMs": 7863,
+   "peakRssMB": 1035,
+   "note": "Like C, meshopt: needs meshoptDecoderLocation in the app"
+  },
+  {
+   "id": "H-weld-none",
+   "simplifier": "w-gp",
+   "targetTris": 50000,
+   "compression": "none",
+   "texFormat": "jpeg",
+   "texSize": 2048,
+   "srcTris": 2200452,
+   "srcVerts": 6598426,
+   "tris": 49998,
+   "verts": 29959,
+   "reachedTarget": true,
+   "bytes": 1817332,
+   "extensionsUsed": [
+    "KHR_materials_specular"
+   ],
+   "timingsMs": {
+    "read": 154,
+    "weld": 1582,
+    "simplify": 5776,
+    "reread": 12,
+    "textures": 153,
+    "compress": 0,
+    "write": 35
+   },
+   "totalMs": 7712,
+   "peakRssMB": 1040,
+   "note": "Like C, no geometry compression"
+  },
+  {
+   "id": "I-weld-100k-draco",
+   "simplifier": "w-gp",
+   "targetTris": 100000,
+   "compression": "draco",
+   "texFormat": "jpeg",
+   "texSize": 2048,
+   "srcTris": 2200452,
+   "srcVerts": 6598426,
+   "tris": 99998,
+   "verts": 58039,
+   "reachedTarget": true,
+   "bytes": 910772,
+   "extensionsUsed": [
+    "KHR_materials_specular",
+    "KHR_draco_mesh_compression"
+   ],
+   "timingsMs": {
+    "read": 150,
+    "weld": 1591,
+    "simplify": 5809,
+    "reread": 13,
+    "textures": 150,
+    "compress": 50,
+    "write": 262
+   },
+   "totalMs": 8025,
+   "peakRssMB": 1042,
+   "note": "Like C at the 100k hard max"
+  },
+  {
+   "id": "J-weld-draco-webp",
+   "simplifier": "w-gp",
+   "targetTris": 50000,
+   "compression": "draco",
+   "texFormat": "webp",
+   "texSize": 2048,
+   "srcTris": 2200452,
+   "srcVerts": 6598426,
+   "tris": 49998,
+   "verts": 29959,
+   "reachedTarget": true,
+   "bytes": 545352,
+   "extensionsUsed": [
+    "KHR_materials_specular",
+    "EXT_texture_webp",
+    "KHR_draco_mesh_compression"
+   ],
+   "timingsMs": {
+    "read": 152,
+    "weld": 1550,
+    "simplify": 5712,
+    "reread": 12,
+    "textures": 522,
+    "compress": 38,
+    "write": 165
+   },
+   "totalMs": 8151,
+   "peakRssMB": 1059,
+   "note": "Like C with WebP texture"
+  }
+ ]
+}
