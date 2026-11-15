@@ -18,6 +18,24 @@ export const Media: CollectionConfig = {
       type: 'text',
       required: true,
     },
+    {
+      name: 'user',
+      type: 'relationship',
+      relationTo: 'users',
+      access: {
+        update: ({ req }) => req.user?.role === 'admin',
+      },
+    },
   ],
+  hooks: {
+    beforeChange: [
+      ({ req, data, operation }) => {
+        if (operation === 'create' && req.user) {
+          data.user = req.user.id
+        }
+        return data
+      },
+    ],
+  },
   upload: true,
 }

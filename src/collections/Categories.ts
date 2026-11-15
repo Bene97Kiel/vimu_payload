@@ -6,6 +6,8 @@ export const Categories: CollectionConfig = {
   slug: 'categories',
   admin: {
     useAsTitle: 'name',
+    // Categories are a shared, admin-managed taxonomy — not provider-owned.
+    hidden: ({ user }) => user?.role !== 'admin',
   },
   access: {
     read: () => true,

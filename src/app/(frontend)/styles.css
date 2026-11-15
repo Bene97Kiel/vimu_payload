@@ -138,6 +138,18 @@ svg {
       background: rgb(0, 0, 0);
       border: 1px solid rgb(1000, 1000, 1000);
     }
+
+    .login {
+      color: rgb(1000, 1000, 1000);
+      background: rgb(0, 0, 0);
+      border: 1px solid rgb(1000, 1000, 1000);
+    }
+
+    .register {
+      color: rgb(0, 0, 0);
+      background: rgb(1000, 1000, 1000);
+      border: 1px solid rgb(0, 0, 0);
+    }
   }
 
   .footer {
