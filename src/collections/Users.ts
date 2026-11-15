@@ -66,7 +66,11 @@ export const Users: CollectionConfig = {
         { label: 'Provider', value: 'provider' },
         { label: 'Admin', value: 'admin' },
       ],
+      // `create` must be guarded too: registration (`users.create`) is public,
+      // so without it anyone could self-register with `role: 'admin'`. When a
+      // non-admin creates a user, the field is stripped and `defaultValue` applies.
       access: {
+        create: isAdminField,
         update: isAdminField,
       },
     },

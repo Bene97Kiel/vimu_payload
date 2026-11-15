@@ -98,6 +98,114 @@ describe('Role-based access control', () => {
     await payload.delete({ collection: 'users', id: created.id })
   })
 
+  it('ignores a role sent during public self-registration (no admin escalation)', async () => {
+    const email = 'escalation-register@test.local'
+    await payload.delete({ collection: 'users', where: { email: { equals: email } } })
+
+    const created = await payload.create({
+      collection: 'users',
+      data: {
+        email,
+        password: 'test1234',
+        surname: 'Escalation',
+        name: 'Public',
+        role: 'admin',
+      },
+      overrideAccess: false,
+      disableVerificationEmail: true,
+    })
+
+    try {
+      expect(created.role).toBe('client')
+    } finally {
+      await payload.delete({ collection: 'users', id: created.id })
+    }
+  })
+
+  it('lets an admin create a user with an elevated role', async () => {
+    const email = 'admin-created-provider@test.local'
+    await payload.delete({ collection: 'users', where: { email: { equals: email } } })
+
+    const created = await payload.create({
+      collection: 'users',
+      data: {
+        email,
+        password: 'test1234',
+        surname: 'Provider',
+        name: 'Created',
+        role: 'provider',
+      },
+      user: users.admin,
+      overrideAccess: false,
+      disableVerificationEmail: true,
+    })
+
+    try {
+      expect(created.role).toBe('provider')
+    } finally {
+      await payload.delete({ collection: 'users', id: created.id })
+    }
+  })
+
+  describe('media write access', () => {
+    const svg = Buffer.from(
+      '<svg xmlns="http://www.w3.org/2000/svg" width="1" height="1"><rect width="1" height="1"/></svg>',
+    )
+    const testFile = (name: string) => ({
+      data: svg,
+      mimetype: 'image/svg+xml',
+      name,
+      size: svg.length,
+    })
+
+    it('rejects media uploads from a client', async () => {
+      await expect(
+        payload.create({
+          collection: 'media',
+          data: { alt: 'client upload' },
+          file: testFile('access-test-client.svg'),
+          user: users.client,
+          overrideAccess: false,
+        }),
+      ).rejects.toThrow()
+    })
+
+    it('lets a provider upload media, but not a client update or delete it', async () => {
+      const media = await payload.create({
+        collection: 'media',
+        data: { alt: 'provider upload' },
+        file: testFile('access-test-provider.svg'),
+        user: users.provider,
+        overrideAccess: false,
+      })
+
+      try {
+        expect(media.id).toBeDefined()
+
+        await expect(
+          payload.update({
+            collection: 'media',
+            id: media.id,
+            data: { alt: 'hijacked' },
+            user: users.client,
+            overrideAccess: false,
+          }),
+        ).rejects.toThrow()
+
+        await expect(
+          payload.delete({
+            collection: 'media',
+            id: media.id,
+            user: users.client,
+            overrideAccess: false,
+          }),
+        ).rejects.toThrow()
+      } finally {
+        await payload.delete({ collection: 'media', id: media.id })
+      }
+    })
+  })
+
   it("prevents a client from reading another user's record, but allows their own", async () => {
     const ownRead = await payload.find({
       collection: 'users',

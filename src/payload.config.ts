@@ -13,6 +13,7 @@ import { Sites } from './collections/Sites'
 import { Valuables } from './collections/Valuables'
 import { Categories } from './collections/Categories'
 import { UserValuables } from './collections/UserValuables'
+import { ensureInitialAdmin } from './lib/bootstrapAdmin'
 
 const filename = fileURLToPath(import.meta.url)
 const dirname = path.dirname(filename)
@@ -60,4 +61,8 @@ export default buildConfig({
   }),
   sharp,
   plugins: [],
+  // Creates the first admin from ADMIN_EMAIL / ADMIN_PASSWORD if none exists.
+  onInit: async (payload) => {
+    await ensureInitialAdmin(payload)
+  },
 })
