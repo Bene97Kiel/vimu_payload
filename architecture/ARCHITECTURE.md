@@ -4,6 +4,7 @@
 > **Backend:** `vimu_payload` @ `dev` (`8997dbc`)
 > **App:** `Collector_App/vimu_collector_app/collector_app` @ `develop` (`0dad6b0`)
 > **Diagram:** [`vimu-system-architecture.excalidraw`](./vimu-system-architecture.excalidraw). Open it at [excalidraw.com](https://excalidraw.com) (File → Open) or with the VS Code *Excalidraw* extension.
+> **Planned, not implemented:** Scan storage and delivery. See §9, [`scan-storage-spec.md`](./scan-storage-spec.md) and the ADRs in [`docs/adr/`](../docs/adr/).
 
 This document describes the system **as it is implemented today**. It is not a target design. Use it as the starting point for planning further work. When the architecture changes, update this file and the diagram in the same PR.
 
@@ -213,6 +214,8 @@ Access helpers are in `src/access/roles.ts`: `isProviderOrAdmin`, `isAdmin`, `is
 | **Local disk `./media`** | Every upload: site images and logos, category icons (svg), valuable images, `.glb` models | Payload upload handler (`upload: true`, `sharp`) | Git-ignored. Exists only on the host that runs the server: no CDN, no backup, and it is lost when an ephemeral container is rebuilt. |
 | **Firebase Storage** `collectclient.firebasestorage.app` | Older 3D models (`models/*.glb`) | Nothing at runtime | Orphaned. The app's `cors.json` allows GET from any origin. See §6. |
 
+> **Planned:** every upload moves to an S3-compatible store (Garage) in Docker, and `./media` goes away. See §9.
+
 ---
 
 ## 5. Key runtime flows
@@ -240,7 +243,7 @@ The numbers match the `[n]` labels in the diagram.
 | `dataconnect/` | app repo root | Firebase Data Connect template (movie-review sample, all commented out). Not deployed and not used. |
 | `cors.json`, `storage.rules` | app repo root | Bucket CORS config. `storage.rules` contains CLI error output, not real rules. |
 
-**Decision needed:** you can either remove Firebase entirely, or reuse the bucket as Payload's object storage (see §8). Firebase Storage buckets are Google Cloud Storage buckets, so `@payloadcms/storage-gcs` can write to them directly.
+**Decided ([#10](https://github.com/Bene97Kiel/vimu_payload/issues/10)):** Firebase Storage is not part of the architecture. ViMu uses its own S3-compatible store (§9). Removing the leftovers from the app is a separate cleanup.
 
 ---
 
@@ -280,16 +283,52 @@ Ordered roughly by priority. Each item was found by reading the code and has not
 These are starting points for planning, not decisions:
 
 1. **Finish access control** (risks 1–2): ownership checks for providers, and server-side price/status for `user-valuables`, each with a test.
-2. **Move uploads to object storage.** Add `@payloadcms/storage-gcs` (to reuse the Firebase/GCS bucket) or `@payloadcms/storage-s3`, then migrate the existing `./media` files. The app needs no changes as long as Payload keeps serving `/api/media/file/*`, or as long as `MediaModel.fullUrl` accepts absolute bucket or CDN URLs, which would need a small change.
-3. **Decide on Firebase.** Either remove the SDK, packages, `dataconnect/` and the config files, or keep them only for the bucket from step 2.
+2. **Move uploads to object storage.** Decided and specified: see §9 and [`scan-storage-spec.md`](./scan-storage-spec.md).
+3. **Remove the Firebase leftovers** from the app: the SDK, packages, `dataconnect/` and the config files. Firebase Storage isn't used (§6).
 4. **Environment config in the app.** Use `--dart-define` or flavors for `appBaseUrl`, use HTTPS outside development, and limit cleartext traffic to debug builds.
 5. **Payments.** Design the real collect/payment flow (Stripe or PayPal webhooks set `paymentStatus` on the server) before `user-valuables` holds anything of value.
-6. **Deployment.** Pick a hosting target, set `output: 'standalone'`, use managed MongoDB (e.g. Atlas, which supports `2dsphere`), and set up secrets.
+6. **Deployment.** The hosting target is decided ([#10](https://github.com/Bene97Kiel/vimu_payload/issues/10)): one Linux server running docker compose with Payload, the worker, MongoDB, Garage and Caddy, with the same compose file for dev (§9). Still to do: set `output: 'standalone'` and set up secrets.
 7. **Geo endpoints.** Add `limit` / `maxDistance` and pagination, and consider a lighter depth for list views.
 
 ---
 
-## 9. File index
+## 9. Planned: Scan storage and delivery
+
+> **Not implemented yet.** This section summarises the target design from the map [#9](https://github.com/Bene97Kiel/vimu_payload/issues/9). The full spec is [`scan-storage-spec.md`](./scan-storage-spec.md); the hard-to-reverse choices are in [`docs/adr/`](../docs/adr/). As each part lands, move its description from here into the as-is sections above and update the diagram.
+
+**What changes compared with today:**
+
+- **Storage:** an S3-compatible store, **Garage** `v2.5.0` single-node, runs in docker compose with two buckets:
+  - `vimu-public`: Previews, Posters and ordinary images.
+  - `vimu-private`: Game assets, Sources and incoming uploads.
+  
+  `./media` goes away. The fallback store is SeaweedFS.
+- **New services:**
+  - `garage`
+  - `garage-init` (one-shot setup)
+  - `caddy` (the only way in; hostnames `s3.<domain>` and `files.<domain>`, LAN IP plus ports in dev)
+  - `worker` (Payload Jobs on the `scans` queue, with gltfpack and Playwright)
+- **Data model:**
+  - A new `scans` collection: one per Valuable except AUDIO and MOVIE, with live Renditions and a pending upload.
+  - `valuables` gets `scan` and `scanReady`. The geo routes show a Valuable only once its Scan is live.
+  - `user-valuables` gets `origin: acquired | granted`, and only the server sets `price` and `paymentStatus`.
+- **Uploads:**
+  - Providers upload a Game asset (and optionally a Source) on the Valuable's page. Each file goes as one presigned `PUT` straight to the store, never through Payload.
+  - A worker job validates it, generates the Preview and Poster, and switches it live in one update ([ADR 0002](../docs/adr/0002-scans-bypass-payload-upload-collections.md)).
+- **Downloads:**
+  - The collector app loads Previews and Posters from public URLs.
+  - The Godot game lists its owned Game assets (`GET /api/game/assets`) and gets 15-minute presigned links (`GET /api/game/assets/:scanId/link`) after an ownership check ([ADR 0001](../docs/adr/0001-payload-is-the-only-api-for-scans.md)).
+  - Providers own their Valuables through Grants ([ADR 0003](../docs/adr/0003-providers-own-their-valuables-through-grants.md)).
+- **Prerequisite:** Payload ≥ 3.93 and Node ≥ 22.23.4.
+
+---
+
+## 10. File index
+
+**Docs**
+- `GLOSSARY.md`: domain vocabulary (Scan, Rendition, Game asset, Preview, Poster, UserValuable, Grant, Owner)
+- `architecture/scan-storage-spec.md`: planned Scan storage and delivery (§9)
+- `docs/adr/`: architecture decision records
 
 **Backend (`vimu_payload`)**
 - `src/payload.config.ts`: collections, adapters, CORS, email
